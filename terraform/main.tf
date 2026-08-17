@@ -36,6 +36,24 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "lakehouse" {
 }
 
 locals {
-  
+  lakehouse_prefixes = toset([
+    "bronze",
+    "silver",
+    "gold",
+    "quarantine",
+    "logs",
+    "temp",
+    "athena-results",
+    "scripts"
+  ])
+}
+
+resource "aws_s3_object" "prefixes" {
+  for_each = local.lakehouse_prefixes
+
+  bucket       = aws_s3_bucket.lakehouse.id
+  key          = "${each.value}/"
+  content      = ""
+  content_type = "application/x-directory"
 
 }
