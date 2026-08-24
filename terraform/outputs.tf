@@ -28,7 +28,24 @@ output "bronze_yellow_crawler_name" {
   value       = aws_glue_crawler.bronze_yellow.name
 }
 
+output "silver_glue_database_name" {
+  description = "Glue database containing silver tables"
+  value       = aws_glue_catalog_database.silver.name
+}
+
+output "silver_yellow_crawler_name" {
+  description = "Crawler for silver yellow taxi data"
+  value       = aws_glue_crawler.silver_yellow.name
+}
+
 output "bronze_yellow_crawler_role_arn" {
   description = "IAM role used by the bronze yellow crawler"
   value       = aws_iam_role.bronze_yellow_crawler.arn
+}
+
+output "glue_scripts_keys" {
+  description = "S3 keys of uploaded Glue scripts"
+  value = sort([
+    for script in values(aws_s3_object.glue_scripts) : script.key
+  ])
 }
