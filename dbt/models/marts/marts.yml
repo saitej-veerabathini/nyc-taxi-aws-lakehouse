@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: gold_yellow_daily_metrics
+    description: Daily yellow taxi metrics by pickup date and vendor
+
+    columns:
+      - name: pickup_date
+        data_tests:
+          - not_null
+
+      - name: vendor_name
+        data_tests:
+          - not_null
+
+      - name: trip_count
+        data_tests:
+          - not_null
+
+  - name: gold_yellow_hourly_demand
+    description: Hourly yellow taxi metrics by date and hour
+
+    columns:
+      - name: pickup_date
+        data_tests:
+          - not_null
+
+      - name: pickup_day
+        data_tests:
+          - not_null
+
+      - name: pickup_hour
+        data_tests:
+          - not_null

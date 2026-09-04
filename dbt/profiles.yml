@@ -1,0 +1,19 @@
+nyc_taxi_analytics:
+  target: dev
+
+  outputs:
+    dev:
+      type: athena
+      database: awsdatacatalog
+      schema: nyc_taxi_yellow_gold
+      region_name: us-east-1
+
+      aws_profile_name: default
+      work_group: nyc-taxi-yellow-analytics
+
+      s3_staging_dir: s3://nyc-taxi-aws-lakehouse-us-east-1/athena-results/dbt/
+      s3_data_dir: s3://nyc-taxi-aws-lakehouse-us-east-1/gold/dbt/
+      s3_tmp_table_dir: s3://nyc-taxi-aws-lakehouse-us-east-1/temp/dbt/
+      s3_data_naming: schema_table
+
+      threads: 2

@@ -1,0 +1,29 @@
+version: 2
+
+sources:
+  - name: nyc_taxi_yellow_silver
+    description: Silver NYC Taxi datasets produced by AWS Glue
+    database: awsdatacatalog
+    schema: nyc_taxi_yellow_silver
+
+    tables:
+      - name: silver_yellow
+        description: Cleaned, deduplicated, and quality-flagged yellow taxi trips
+
+        columns:
+          - name: vendor_name
+            data_tests:
+              - not_null
+
+          - name: year
+            data_tests:
+              - not_null
+
+          - name: month
+            data_tests:
+              - not_null
+          
+          - name: dq_quality_warnings_count
+            data_tests:
+            - not_null
+        

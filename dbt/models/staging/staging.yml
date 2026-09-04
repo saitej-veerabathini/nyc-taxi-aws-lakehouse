@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: stg_yellow_trips
+    description: dbt entry point for cleaned yellow taxi trips
+
+    columns:
+      - name: vendor_name
+        data_tests:
+          - not_null
+
+      - name: year
+        data_tests:
+          - not_null
+
+      - name: month
+        data_tests:
+          - not_null
