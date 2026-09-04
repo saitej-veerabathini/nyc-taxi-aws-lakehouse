@@ -25,3 +25,9 @@ data/
 .venv/
 __pycache__/
 *.pyc
+
+#dbt
+# dbt/profiles.yml
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
