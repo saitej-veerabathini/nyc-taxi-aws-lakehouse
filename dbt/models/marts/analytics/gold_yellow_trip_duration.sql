@@ -24,5 +24,5 @@ INNER JOIN {{ ref('dim_date') }} AS d
 GROUP BY 
     date(s.trip_pickup_datetime),
     d.day_name,
-    hour(s.trip_pickup_datetime)
+    s.vendor_name
 
