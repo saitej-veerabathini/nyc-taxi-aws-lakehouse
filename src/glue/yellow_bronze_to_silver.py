@@ -8,12 +8,18 @@ from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
 from pyspark.sql import functions as F 
 
-REQUIRED_ARGUMENTS = [
+COMMON_ARGUMENTS = [
     "JOB_NAME",
     "SOURCE_PATH",
     "TARGET_PATH",
+    "PROCESS_MODE",
     "DRY_RUN",
     "MAX_ROWS"
+]
+
+INCREMENTAL_ARGUMENTS = [
+    "LOAD_YEAR",
+    "LOAD_MONTH"
 ]
 
 def normalize_column_name(column_name):
@@ -125,11 +131,30 @@ def quality(dataframe):
     
     return dataframe
 
+def resolve_job_arguments():
+    args = getResolvedOptions(sys.argv, COMMON_ARGUMENTS)
+
+    process_mode = args["PROCESS_MODE"].strip().lower()
+
+    if process_mode not in ("incremental","full_refresh"):
+        raise ValueError(
+            "PROCESS_MODE must be 'incremental' or 'full_refresh'. "
+            f"Received: {args['PROCESS_MODE']}"
+        )
+
+    if process_mode == "incremental":
+        incremental_args = getResolvedOptions(sys.argv, INCREMENTAL_ARGUMENTS)
+        args.update(incremental_args)
+
+    return args
+
 def main():
-    args = getResolvedOptions(sys.argv, REQUIRED_ARGUMENTS)
+    args = resolve_job_arguments()
 
     source_path = args["SOURCE_PATH"].rstrip("/") + "/"
     target_path = args["TARGET_PATH"].rstrip("/") + "/"
+
+    process_mode = args["PROCESS_MODE"].strip().lower()
 
     dry_run_value = args["DRY_RUN"].strip().lower()
     max_rows = int(args["MAX_ROWS"])
@@ -154,13 +179,50 @@ def main():
     job = Job(glue_context)
     job.init(args["JOB_NAME"], args)
 
-    print(f"Reading bronze data from: {source_path}")
+    if process_mode == "incremental":
+        load_year = args["LOAD_YEAR"].strip()
+        load_month = args["LOAD_MONTH"].strip()
+
+        if not re.fullmatch(r"\d{4}", load_year):
+            raise ValueError(
+                "LOAD_YEAR must contain exactly four digits. "
+                f"Received: {args['LOAD_YEAR']}"
+            )
+
+        if not re.fullmatch(r"(0[1-9]|1[0-2])", load_month):
+            raise ValueError(
+                "LOAD_MONTH must be between 01 and 12. "
+                f"Received: {args['LOAD_YEAR']}"
+            )
+
+        source_read_path = (
+            f"{source_path}"
+            f"year={load_year}/"
+            f"month={load_month}/"
+        )
+
+        partition_overwrite_mode = "dynamic"
+
+    else:
+        load_year = None
+        load_month = None
+
+        source_read_path = source_path
+        partition_overwrite_mode = "static"
+
+    print(f"Process mode: {process_mode}")
+    print(f"Reading bronze data from: {source_read_path}")
+
+    if process_mode == "incremental":
+        print(f"Processing partition: year={load_year}/month={load_month}")
+    else:
+        print("Processing all available Bronze partitions.")
 
     bronze_df = (
         spark
         .read
         .option("basePath", source_path)
-        .parquet(source_path)
+        .parquet(source_read_path)
     )
 
     print("Bronze schema: ")
@@ -193,6 +255,23 @@ def main():
             F.lpad(F.col("month").cast("string"), 2, "0")
         )
     )
+
+    if process_mode == "incremental":
+        unexpected_partition_count = (
+            normalized_df
+            .filter(
+                (F.col("year") != load_year)
+                | (F.col("month") != load_month)
+            )
+            .limit(1)
+            .count()
+        )
+
+        if unexpected_partition_count > 0:
+            raise ValueError(
+                "Bronze records do not match the requested partition."
+                f"Expected year={load_year}, month={load_month}."
+            )
 
     profile = profile_dataframe(normalized_df)
 
@@ -265,7 +344,7 @@ def main():
 
         spark.conf.set(
             "spark.sql.sources.partitionOverwriteMode",
-            "dynamic"
+            partition_overwrite_mode
         )
 
         (
