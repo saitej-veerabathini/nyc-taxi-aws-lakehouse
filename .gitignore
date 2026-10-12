@@ -37,3 +37,5 @@ dbt/dbt_packages/
 airflow/.env
 airflow/logs/
 airflow/config/airflow.cfg
+
+.vscode/
