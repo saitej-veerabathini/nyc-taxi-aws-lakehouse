@@ -32,3 +32,8 @@ dbt/.user.yml
 dbt/target/
 dbt/logs/
 dbt/dbt_packages/
+
+# Airflow local runtime
+airflow/.env
+airflow/logs/
+airflow/config/airflow.cfg
