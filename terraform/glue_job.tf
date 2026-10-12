@@ -17,11 +17,12 @@ resource "aws_glue_job" "yellow_bronze_to_silver" {
   }
 
   default_arguments = {
-    "--SOURCE_PATH" = "s3://${aws_s3_bucket.lakehouse.bucket}/bronze/yellow"
-    "--TARGET_PATH" = "s3://${aws_s3_bucket.lakehouse.bucket}/silver/yellow"
-    "--DRY_RUN"     = "false"
-    "--MAX_ROWS"    = "0"
-    "--TempDir"     = "s3://${aws_s3_bucket.lakehouse.bucket}/temp/glue"
+    "--SOURCE_PATH"  = "s3://${aws_s3_bucket.lakehouse.bucket}/bronze/yellow"
+    "--TARGET_PATH"  = "s3://${aws_s3_bucket.lakehouse.bucket}/silver/yellow"
+    "--PROCESS_MODE" = "incremental"
+    "--DRY_RUN"      = "false"
+    "--MAX_ROWS"     = "0"
+    "--TempDir"      = "s3://${aws_s3_bucket.lakehouse.bucket}/temp/glue"
 
     "--job-language"                     = "python"
     "--enable-continuous-cloudwatch-log" = "true"

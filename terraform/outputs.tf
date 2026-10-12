@@ -59,3 +59,13 @@ output "databse_gold" {
   description = "Glue database containing dbt gold models"
   value       = aws_glue_catalog_database.gold.name
 }
+
+output "bronze_events_queue_url" {
+  description = "SQS queue receiving Bronze object-created events"
+  value       = aws_sqs_queue.bronze_events.id
+}
+
+output "bronze_events_dlq_url" {
+  description = "Dead-letter queue for failed Bronze events"
+  value       = aws_sqs_queue.bronze_events_dlq.id
+}
